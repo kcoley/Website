@@ -427,7 +427,14 @@ function loadGLTF(scene, rootUrl, sceneFileName, name, position, caption, flip) 
         }
         root.position = position;
         root.rotation = rotation;
-    }, null, null);
+    }, null, function(scene, errorMessage, exception) {
+        if (exception) {
+            throw exception;
+        }
+        else {
+            throw new Error(message);
+        }
+    });
 }
 
 /**
