@@ -44,7 +44,7 @@ function loadScene(engine, glTFParameters) {
 function createBufferInterleavedScene(engine) {
     var glTFParameters = {};
     glTFParameters["test"] = "Buffer_Interleaved";
-    glTFParameters["count"] = 20;
+    glTFParameters["count"] = 5;
     glTFParameters["width"] = 3;
     glTFParameters["position"] = [-1.8, 0.7, 0.0];
     glTFParameters["radius"] = 4;
