@@ -1,11 +1,13 @@
+"use strict";
+
 /**
- * Creates a Babylon scene which loads glTF models and displays them as a grid.  The parameters are picked up from the url and models can be selected with a dropdown menu
+ * Creates a Babylon scene which loads glTF models and displays them as a grid.  
+ * The parameters are picked up from the url and models can be selected with a dropdown menu.
  * @param {BABYLON.Engine} engine 
  */
 function createScene(engine) {
-    var glTFParameters = getURLParameters();
-
-    var scene = loadScene(engine, glTFParameters);
+    const glTFParameters = getURLParameters();
+    const scene = loadScene(engine, glTFParameters);
 
     return scene;
 }
@@ -16,21 +18,19 @@ function createScene(engine) {
  * @param {*} glTFParameters 
  */
 function loadScene(engine, glTFParameters) {
-    var scene = new BABYLON.Scene(engine);
-    var showMenu = true;
-    var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("/Assets/environment.dds", scene);
+    const scene = new BABYLON.Scene(engine);
+    let showMenu = true;
+    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 6);
+    const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("/Assets/environment.dds", scene);
     hdrTexture.gammaSpace = false;
     scene.createDefaultSkybox(hdrTexture, true, 100, 0.3);
 
-    if (glTFParameters != null) {
+    if (glTFParameters) {
         showMenu = glTFParameters["showMenu"];
-        var radius = glTFParameters["radius"];
-        var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, radius);
+        const radius = glTFParameters["radius"];
+        camera.radius = radius;
+        
         initScene(scene, camera, glTFParameters);
-    }
-    else {
-        // No glTf parameters, so initialize camera with default radius of 6.
-        var camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 6);
     }
     if (showMenu === true) {
         initDropdownMenu("/Demos/GLTFTests/generatedAssets.json");
@@ -42,7 +42,7 @@ function loadScene(engine, glTFParameters) {
 }
 
 function createBufferInterleavedScene(engine) {
-    var glTFParameters = {};
+    let glTFParameters = {};
     glTFParameters["test"] = "Buffer_Interleaved";
     glTFParameters["count"] = 5;
     glTFParameters["width"] = 3;
@@ -238,46 +238,40 @@ function createTextureSamplerScene(engine) {
 }
 
 function initScene(scene, camera, glTFParameters) {
-    var assetRootDirectory = "/Assets/glTFTests/";
-    if (glTFParameters != null) {
-        var assetName = glTFParameters["test"];
-        var total = glTFParameters["count"];
-        var width = glTFParameters["width"];
-        var position = glTFParameters["position"];
-        var title;
-        if (glTFParameters.title !== undefined) {
-            title = glTFParameters['title'].replace("_", "").replace(/%20/g, ' ').replace(/([A-Z])/g, ' $1');
-        }
-        else {
-            var title = glTFParameters["test"].replace("_", "").replace(/([A-Z])/g, ' $1');
-        }
-        
-        var flip = glTFParameters["flip"];
-        var showMenu = glTFParameters["showMenu"];
+    const assetRootDirectory = "/Assets/glTFTests/";
+    if (glTFParameters) {
+        const assetName = glTFParameters["test"];
+        const total = glTFParameters["count"];
+        const width = glTFParameters["width"];
+        const position = glTFParameters["position"];
+        let title = glTFParameters.title ? glTFParameters['title'].replace("_", "").replace(/%20/g, ' ').replace(/([A-Z])/g, ' $1') : glTFParameters["test"].replace("_", "").replace(/([A-Z])/g, ' $1');
+
+        const flip = glTFParameters["flip"];
+        const showMenu = glTFParameters["showMenu"];
 
         function glTFGrid(widthDistance, heightDistance, topLeft, rootDirectory, fileNamePrefix, flip) {
             function pad(num, width) {
-                var z = '0';
+                let z = '0';
                 num = num + "";
 
                 return num.length >= width ? num : new Array(width - num.length + 1).join(z) + num;
             }
 
-            var height = total / width;
-            var heightRemainder = (total / width) % width;
+            let height = total / width;
+            let heightRemainder = (total / width) % width;
             if (heightRemainder > 0) {
                 height += heightRemainder / heightRemainder;
             }
 
-            var titleLabel = createLabel(scene, title);
+            const titleLabel = createLabel(scene, title);
             titleLabel.position.x = topLeft.x + ((width - 1) * widthDistance) / 2;
             titleLabel.position.y = topLeft.y + 0.8;
 
-            for (var h = 0; h < height; ++h) {
-                for (var w = 0; w < width; ++w) {
-                    var id = w + (h * width);
+            for (let h = 0; h < height; ++h) {
+                for (let w = 0; w < width; ++w) {
+                    const id = w + (h * width);
                     if (id < total) {
-                        var paddedID = pad(id, 2);
+                        const paddedID = pad(id, 2);
                         loadGLTF(scene, rootDirectory, fileNamePrefix + paddedID + ".gltf", "root" + paddedID, new BABYLON.Vector3(topLeft.x + w * widthDistance, topLeft.y - h * heightDistance, 0), paddedID, flip, fileNamePrefix + "00" + ".gltf");
                     }
                 }
@@ -296,53 +290,45 @@ function initScene(scene, camera, glTFParameters) {
  * Parse the url for parameters.
  */
 function getURLParameters() {
-    var parameters = {};
-    var queryString = window.location.href;
-    var urlSplit = queryString.split('?');
+    let parameters = {};
+    const queryString = window.location.href;
+    const urlSplit = queryString.split('?');
     if (urlSplit.length !== 2) {
         return null;
     }
 
-    var params = urlSplit[1].split('&');
-
-    var length = params.length;
-    for (var i = 0; i < length; ++i) {
-        var keyValue = params[i].split('=');
-        var value = keyValue[1];
-
-        switch (keyValue[0]) {
+    const params = urlSplit[1].split('&');
+    params.forEach(function (param) {
+        const keyValue = param.split('=');
+        const key = keyValue[0];
+        const value = keyValue[1];
+        switch (key) {
             case 'title':
-                parameters['title'] = value;
-                break;
+            case 'title':
             case 'test':
-                parameters['test'] = value;
-                break;
             case 'count':
-                parameters['count'] = value;
-                break;
             case 'width':
-                parameters['width'] = value;
+            case 'radius': {
+                parameters[key] = value;
                 break;
-            case 'position':
+            }
+            case 'flip':
+            case 'showMenu': {
+                parameters[key] = value === 'true';
+                break;
+            }
+            case 'position': {
                 const positionStrings = value.match(/-?[0-9]+(\.[0-9]+)?/g);
                 parameters['position'] = [];
-                for (let i = 0; i < positionStrings.length; ++i) {
-                    parameters.position.push(Number(positionStrings[i]));
-                }
+                positionStrings.forEach(function (element) {
+                    parameters.position.push(Number(element));
+                });
                 break;
-            case 'radius':
-                parameters['radius'] = value;
-                break;
-            case 'flip':
-                parameters['flip'] = value === "true";
-                break;
-            case 'showMenu':
-                parameters['showMenu'] = value === "true";
-                break;
+            }
             default:
                 break;
         }
-    }
+    });
 
     return parameters;
 }
@@ -353,7 +339,7 @@ function getURLParameters() {
  */
 function initDropdownMenu(jsonFile) {
     function readJSONFile(file, onSuccess) {
-        var rawFile = new XMLHttpRequest();
+        const rawFile = new XMLHttpRequest();
         rawFile.overrideMimeType("application/json");
         rawFile.open("GET", file, true);
         rawFile.onreadystatechange = function () {
@@ -366,30 +352,27 @@ function initDropdownMenu(jsonFile) {
 
     function generateTestSelectorHTML(data) {
         function setURLFromDropdown() {
-            var selectTestDropdown = document.getElementById("testSelector");
+            const selectTestDropdown = document.getElementById("testSelector");
             selectTestDropdown.addEventListener("change", function () {
                 window.location.href = this.options[this.selectedIndex].value;
             });
         }
-        var dropdownHTML = '<select id="testSelector" name="testSelector">Things' +
+        let dropdownHTML = '<select id="testSelector" name="testSelector">Things' +
             '<option value="">Choose a Test</option>';
 
-        var keys = Object.keys(data["tests"]).sort();
+        const keys = Object.keys(data["tests"]).sort();
 
-        var length = keys.length;
-        for (var i = 0; i < length; ++i) {
-            dropdownHTML += '<option value=' + data["tests"][keys[i]]["url"] + '>' + keys[i] + '</option>';
-        }
-
+        keys.forEach(function(key) {
+            dropdownHTML += '<option value=' + data["tests"][key]["url"] + '>' + key + '</option>';
+        })
         dropdownHTML += '</select>';
-        var testSelector = document.getElementById("testSelectorDiv").innerHTML = dropdownHTML;
+        const testSelector = document.getElementById("testSelectorDiv").innerHTML = dropdownHTML;
 
         setURLFromDropdown();
     }
 
     readJSONFile(jsonFile, function (data) {
-        var results = JSON.parse(data);
-
+        const results = JSON.parse(data);
         generateTestSelectorHTML(results);
     });
 }
@@ -406,25 +389,24 @@ function initDropdownMenu(jsonFile) {
  * @param {boolean} flip 
  */
 function loadGLTF(scene, rootUrl, sceneFileName, name, position, caption, flip) {
-    var rotation = new BABYLON.Vector3(0, Math.PI, 0);
+    const rotation = new BABYLON.Vector3(0, Math.PI, 0);
     if (flip === true) {
-        rotation = new BABYLON.Vector3(0, 0, 0);
+        rotation.y = 0;
     }
 
     BABYLON.SceneLoader.ImportMesh("", rootUrl, sceneFileName, scene, function (meshes) {
-        var root = new BABYLON.Mesh(name, scene);
+        const root = new BABYLON.Mesh(name, scene);
 
-        var textLabel0 = createLabel(scene, caption);
+        const textLabel0 = createLabel(scene, caption);
         textLabel0.position = position.clone();
         textLabel0.position.y -= 0.7;
 
-        var length = meshes.length;
-
-        for (var i = 0; i < length; ++i) {
-            if (!meshes[i].parent) {
-                meshes[i].parent = root;
+        meshes.forEach(function(mesh) {
+            if (!mesh.parent) {
+                mesh.parent = root;
             }
-        }
+        });
+
         root.position = position;
         root.rotation = rotation;
     }, null, null);
@@ -436,11 +418,11 @@ function loadGLTF(scene, rootUrl, sceneFileName, name, position, caption, flip) 
  * @param {string} text - Text to display for label.
  */
 function createLabel(scene, text) {
-    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 512, scene, true);
+    const dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 512, scene, true);
     dynamicTexture.hasAlpha = true;
     dynamicTexture.drawText(text, null, null, "36px Arial", "white", "transparent");
 
-    var plane = BABYLON.Mesh.CreatePlane("TextPlane", 2, scene);
+    const plane = BABYLON.Mesh.CreatePlane("TextPlane", 2, scene);
     plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
     plane.material.backFaceCulling = false;
     plane.material.specularColor = BABYLON.Color3.White();
