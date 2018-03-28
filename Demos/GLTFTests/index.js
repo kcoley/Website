@@ -237,6 +237,63 @@ function createTextureSamplerScene(engine) {
     return loadScene(engine, glTFParameters);
 }
 
+/**
+ * Pads a number with zeros.
+ * @param {number} num 
+ * @param {number} width
+ * @returns {string} - padding number string. 
+ */
+function padWithLeadingZeros(num, width) {
+    const zero = '0';
+    // ensure number is a string.
+    num = num + '';
+    return num.length >= width ? num : new Array(width - num.length + 1).join(zero) + num;
+}
+
+/**
+ * Update a position based on a width and height offset.
+ * @param {number} width - width offset from origin.
+ * @param {number} height - height offset from origin.
+ * @param {number} widthSpacing - horizontal spacing between each model.
+ * @param {number} heightSpacing - vertical spacing between each model.
+ * @param {Array<number>} position - position to update.
+ */
+function calculatePositionFromRef(width, height, widthSpacing, heightSpacing, position) {
+    const modelWidth = 1.0;
+    const modelHeight = 1.0;
+    const w = width * (modelWidth + widthSpacing);
+    const h = height * (modelHeight + heightSpacing);
+
+    position.x = w;
+    position.y = h;
+}
+
+/**
+ * Creates a width by height grid of glTF models 
+ * @param {BABYLON.Scene} scene - BABYLON scene.
+ * @param {string} rootURL - root directory of Babylon models.
+ * @param {number} width - width in glTF models.
+ * @param {number} height - height in glTF models.
+ * @param {number} widthSpacing - horizontal spacing between each model.
+ * @param {number} heightSpacing - vertical spacing between each model.
+ * @param {Array<Object>} models - array of glTF models.
+ * @param {boolean} normalizeModels - boolean specifying if the models should be normalized.
+ */
+function createGLTFGrid(scene, rootURL, width, height, widthSpacing, heightSpacing, models, normalizeModels, ) {
+    const position = BABYLON.Vector3.Zero();
+    let sceneFileName = '';
+    for (let h = 0; h < height; ++h) {
+        for (let w = 0; w < width; ++w) {
+            //more work here
+
+            calculatePositionFromRef(w, h, widthSpacing, heightSpacing, position);
+            loadGLTF(scene, rootURL, sceneFileName, name, position, caption, flip);
+            
+        }
+    }
+
+}
+
 function initScene(scene, camera, glTFParameters) {
     const assetRootDirectory = "/Assets/glTFTests/";
     if (glTFParameters) {
